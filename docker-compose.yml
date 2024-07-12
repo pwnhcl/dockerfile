@@ -1,0 +1,88 @@
+version: "3.3"
+services:
+  # Database
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    ports:
+      - "8090:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: wp_iirs_science
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: admin
+    networks:
+      - dockerwp
+
+  # phpMyAdmin
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      UPLOAD_LIMIT: 512M
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: admin
+    networks:
+      - dockerwp
+
+  # # WordPress
+  # wordpress:
+  #   depends_on:
+  #     - db
+  #   image: wordpress:latest
+  #   volumes:
+  #     - wordpress_data:/var/www/html
+  #     - ./src:/var/www/html/src
+  #   ports:
+  #     - "8000:80"
+  #   restart: always
+  #   environment:
+  #     WORDPRESS_DB_HOST: db
+  #     WORDPRESS_DB_USER: mysql
+  #     WORDPRESS_DB_PASSWORD: admin
+  #     WORDPRESS_DB_NAME: wp_iirs_science
+  #   networks:
+  #     - dockerwp
+
+  
+  # php:
+  #  depends_on:
+  #  - db
+  #  image: php:latest
+  #  container_name: php_conatiner
+  #  ports:
+  #   - "8003:80"
+  # volumes:
+  #  - ./src:/var/www/html/src  
+
+  # Apache HTTP Server
+  apache:
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: my-php-apache
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_GROUP=www-data
+    restart: always
+    networks:
+      - dockerwp
+
+networks:
+  dockerwp:
+
+volumes:
+  db_data: 
+  # wordpress_data: 
